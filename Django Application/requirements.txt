@@ -3,3 +3,5 @@ gunicorn
 whitenoise
 psycopg2-binary
 dj-database-url==1.0.0
+torch==2.2.2
+
