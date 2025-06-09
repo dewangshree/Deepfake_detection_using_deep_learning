@@ -3,13 +3,13 @@ Django settings for project_settings project.
 """
 
 import os
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Build paths inside the project like this: os.path.join(PROJECT_DIR, ...)
 PROJECT_DIR = os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -20,7 +20,7 @@ SECRET_KEY = '@)0qp0!&-vht7k0wyuihr+nk-b8zrvb5j^1d@vl84cd1%)f=dz'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Change and set this to correct IP/Domain
+# Change and set this to correct IP/Domain in production
 ALLOWED_HOSTS = ["*"]
 
 
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # moved up here for best practice
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -55,7 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.media'
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -68,10 +69,7 @@ WSGI_APPLICATION = 'project_settings.wsgi.application'
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(PROJECT_DIR, 'db.sqlite3'),
-    }
+    'default': dj_database_url.config(conn_max_age=600)
 }
 
 
@@ -83,20 +81,16 @@ LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 
 USE_I18N = False
-
 USE_L10N = False
-
 USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
 
-#used in production to serve static files
-STATIC_ROOT = "/home/app/staticfiles/"
-
-#url for static files
+# Used in production to serve static files
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = [
     os.path.join(PROJECT_DIR, 'uploaded_images'),
@@ -104,14 +98,19 @@ STATICFILES_DIRS = [
     os.path.join(PROJECT_DIR, 'models'),
 ]
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Media files (uploads)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploaded_videos')
+
+
+# Content types and max upload size
 CONTENT_TYPES = ['video']
 MAX_UPLOAD_SIZE = "104857600"
 
-MEDIA_URL = "/media/"
 
-MEDIA_ROOT = os.path.join(PROJECT_DIR, 'uploaded_videos')
-
-#for extra logging in production environment
+# Logging (only active if DEBUG = False)
 if DEBUG == False:
     LOGGING = {
         'version': 1,
@@ -120,16 +119,17 @@ if DEBUG == False:
             'console': {
                 'class': 'logging.StreamHandler',
             },
-        'file': {
-            'level': 'DEBUG',
-            'class': 'logging.FileHandler',
-            'filename': 'log.django',
-        },
+            'file': {
+                'level': 'DEBUG',
+                'class': 'logging.FileHandler',
+                'filename': 'log.django',
+            },
         },
         'loggers': {
             'django': {
-                'handlers': ['console','file'],
+                'handlers': ['console', 'file'],
                 'level': os.getenv('DJANGO_LOG_LEVEL', 'DEBUG'),
             },
         },
     }
+
