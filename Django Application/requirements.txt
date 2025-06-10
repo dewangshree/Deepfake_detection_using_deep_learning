@@ -1,7 +1,6 @@
-Django==5.0.6
-gunicorn
-whitenoise
-psycopg2-binary
-dj-database-url==1.0.0
-torch==2.2.2
-
+flask==2.3.3
+tensorflow==2.13.0
+opencv-python==4.8.0.76
+numpy==1.24.3
+pillow==10.0.0
+gunicorn==21.2.0
